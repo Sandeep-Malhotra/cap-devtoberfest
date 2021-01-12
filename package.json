@@ -1,0 +1,70 @@
+{
+  "name": "devtoberfest",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@sap/cds": "4.3.1",
+    "cds-dbm": "~0.0.17",
+    "cds-pg": "0.0.30",
+    "express": "^4",
+    "passport": "^0.4.1",
+    "@sap/xsenv": "^3.1.0",
+    "@sap/xssec": "^3.0.10"
+  },
+  "devDependencies": {
+    "mbt": "~1.0.16"
+  },
+  "cds": {
+    "build": {
+      "tasks": [
+        {
+          "use": "node-cf",
+          "src": "srv"
+        },
+        {
+          "use": "postgres-cf",
+          "src": "db",
+          "options": {
+            "deployCmd": "npx cds-dbm deploy --load-via delta --auto-undeploy"
+          }
+        }
+      ]
+    },
+    "requires": {
+      "db": {
+        "kind": "database"
+      },
+      "database": {
+        "impl": "cds-pg",
+        "model": [
+          "srv"
+        ]
+      },
+      "uaa": {
+        "kind": "xsuaa"
+      }
+    },
+    "migrations": {
+      "db": {
+        "schema": {
+          "default": "public",
+          "clone": "_cdsdbm_clone",
+          "reference": "_cdsdbm_ref"
+        },
+        "deploy": {
+          "tmpFile": "tmp/_autodeploy.json",
+          "undeployFile": "db/undeploy.json"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "start": "npx cds run",
+    "start:docker": "docker-compose up",
+    "build:cf": "mbt build",
+    "deploy:cf": "cf deploy mta_archives/devtoberfest_1.0.0.mtar"
+  }
+}

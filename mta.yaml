@@ -1,0 +1,96 @@
+## Generated mta.yaml based on template version 0.4.0
+## appName = devtoberfest
+## language=nodejs; multiTenant=false
+## approuter=
+_schema-version: "3.1"
+ID: devtoberfest
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install --production
+        - npx cds-dbm build --production
+
+modules:
+  # --------cf ------------- App Router MODULE ------------------------
+  - name: devtoberfest-approuter
+    # ------------------------------------------------------------
+    type: nodejs
+    path: approuter
+    build-parameters:
+      ignore: ["package-lock.json", "node_modules/"]
+      parameters:
+        memory: 256M
+        disk-quota: 256M
+        buildpack: nodejs_buildpack
+    requires:
+      - name: devtoberfest-uaa
+      - name: devtoberfest-dest
+      - name: srv-api
+        group: destinations
+        properties:
+          forwardAuthToken: true
+          strictSSL: false
+          name: devtoberfest-dest
+          url: ~{srv-url}
+    deployed-after:
+      - devtoberfest-srv
+
+  # --------------------- SERVER MODULE ------------------------
+  - name: devtoberfest-srv
+    # ------------------------------------------------------------
+    type: nodejs
+    path: gen/srv
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: devtoberfest-database
+      - name: devtoberfest-uaa
+      - name: devtoberfest-dest
+      
+  - name: devtoberfest-db-deployer
+    type: custom
+    path: gen/db
+    parameters:
+      buildpacks: [https://github.com/cloudfoundry/apt-buildpack#v0.2.2, nodejs_buildpack] 
+      no-route: true
+      no-start: true
+      disk-quota: 2GB
+      memory: 512MB
+      tasks:
+      - name: deploy_to_postgresql
+        command: chmod 755 deploy.sh && ./deploy.sh
+        disk-quota: 2GB
+        memory: 512MB      
+    build-parameters:
+      ignore: ["node_modules/"]
+    requires:
+      - name: devtoberfest-database      
+
+resources:
+  - name: devtoberfest-database
+    parameters:
+      path: ./pg-options.json
+      service: postgresql-db
+      service-plan: standard
+      skip-service-updates:
+        parameters: true
+    type: org.cloudfoundry.managed-service
+  
+  - name: devtoberfest-uaa
+    parameters:
+      path: ./xs-security.json
+    type: com.sap.xs.uaa
+  
+  - name: devtoberfest-dest
+    parameters:
+      service-plan: lite
+      service: destination
+    type: org.cloudfoundry.managed-service

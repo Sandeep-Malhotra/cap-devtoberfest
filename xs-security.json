@@ -1,0 +1,59 @@
+{
+    "xsappname": "devtoberfest",
+    "tenant-mode": "dedicated",
+    "scopes": [
+        {
+            "name": "uaa.user",
+            "description": "UAA"
+        },
+        {
+            "name": "$XSAPPNAME.devtoberfest",
+            "description": "devtoberfest"
+        }
+    ],
+    "attributes": [],
+    "role-templates": [
+        {
+            "name": "Token_Exchange",
+            "description": "UAA",
+            "scope-references": [
+                "uaa.user"
+            ]
+        },
+        {
+            "name": "RT_devtoberfest",
+            "description": "devtoberfest DB Role Template",
+            "scope-references": [
+                "$XSAPPNAME.devtoberfest"
+            ],
+            "attribute-references": []
+        }
+    ],
+    "role-collections": [
+        {
+            "name": "RC_devtoberfest",
+            "description": "devtoberfest",
+            "role-template-references": [
+                "$XSAPPNAME.RT_devtoberfest"
+            ]
+        }
+    ],
+    "oauth2-configuration": {
+        "redirect-uris": [
+            "https://avltejxrm.accounts.ondemand.com/**",
+            "https://**.cfapps.ap10.hana.ondemand.com/**",
+            "https://**.ap10.applicationstudio.cloud.sap/**",
+            "https://rgdev.authentication.ap10.hana.ondemand.com/ouath/token",
+            "https://rgdev.authentication.ap10.hana.ondemand.com/token_keys"
+        ],
+        "allowedproviders": [
+            "sap.custom",
+            "ldap"
+        ],
+        "token-validity": 7200,
+        "refresh-token-validity": 1800,
+        "system-attributes": [
+            "groups"
+        ]
+    }
+}

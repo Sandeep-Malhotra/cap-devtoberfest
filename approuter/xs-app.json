@@ -1,0 +1,12 @@
+{
+    "routes": [
+        {
+            "source": "^/(.*)$",
+            "target": "$1",
+            "destination": "devtoberfest-dest",
+            "authenticationType": "xsuaa",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "csrfProtection": true
+        }
+    ]
+}
